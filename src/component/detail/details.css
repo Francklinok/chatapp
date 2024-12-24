@@ -1,0 +1,158 @@
+.details {
+  flex: 1;
+  height: 100%;
+
+  .user {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #dddddd35;
+    font-size: 15px;
+    margin-bottom: 10px;
+
+    img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid transparent;
+    }
+
+    h2 {
+      font-size: 15px;
+      color: #ddddd5;
+    }
+
+    p {
+      padding-bottom: 5px;
+    }
+  }
+
+  .info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+    border: 1px solid #dddddd35;
+    box-shadow: 1px 0px 2px 1px #dddddd35;
+
+    .options {
+      .title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+
+        img {
+          width: 30px;
+          height: 30px;
+          background-color: rgba(1, 25, 40, 0.3);
+          padding: 10px;
+          border-radius: 50%;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+
+  .button {
+    display: flex;
+    justify-content: space-between;
+
+    button {
+      width: 80px;
+      height: 45px;
+      margin-left: 30px;
+      background-color: rgba(230, 74, 105, 0.553);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+
+      &:hover {
+        background-color: rgba(220, 20, 60, 0.796);
+      }
+    }
+  }
+
+  @media (max-width: 1065px) {
+    .user {
+      font-size: 10px;
+      padding: 2px;
+
+      img {
+        width: 50px;
+        height: 50px;
+      }
+
+      h2 {
+        font-size: 14px;
+      }
+    }
+
+    .info {
+      margin-left: 10px;
+      padding: 4px;
+      padding-bottom: 10px;
+      font-size: 6px;
+
+      .options {
+        .title {
+          font-size: 8px;
+
+          img {
+            width: 25px;
+            height: 25px;
+          }
+        }
+      }
+    }
+
+    .button {
+      flex-direction: column;
+      align-items: center;
+
+      button {
+        width: 60%;
+        margin-left: 0;
+        margin-top: 10px;
+        font-size: 8px;
+      }
+    }
+  
+  }
+  @media (max-width: 480px) {
+   .user {
+      img {
+        width: 20px;
+        height: 20px;
+      }
+
+      h2 , p{
+        font-size: 8px;
+      }
+      
+    }
+
+    .info {
+      padding: 5px 0px 5px 5px;
+      margin:0px;
+
+      .options {
+        .title {
+          font-size: 8px;
+          margin-bottom: 12px;
+
+          img {
+            width: 10px;
+            height: 10px;
+          }
+        }
+      }
+    }
+  
+  }
+}

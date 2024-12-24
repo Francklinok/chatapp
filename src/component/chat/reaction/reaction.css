@@ -1,0 +1,40 @@
+.reaction-container {
+  display: flex;
+
+  .emoji-reaction-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 22px;
+    border: 1px solid white;
+    background-color: rgb(252, 253, 253);
+    width: 220px;
+    font-size: 22px;
+    cursor: pointer;
+
+    .emoji-option {
+      cursor: pointer;
+    }
+  }
+
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    /* Tablet */
+    .emoji-reaction-container {
+      width: 180px;
+      font-size: 18px;
+      padding: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* Mobile */
+    .emoji-reaction-container {
+      width: 150px;
+      font-size: 16px;
+      padding: 8px;
+    }
+  }
+}
+

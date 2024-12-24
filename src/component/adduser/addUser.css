@@ -1,0 +1,147 @@
+.addUser {
+  padding: 30px;
+  width: max-content;
+  height: max-content;
+  background-color: rgba(17, 25, 40, 0.5);
+  border-radius: 10px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+
+  form {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap; /* Allow wrapping for better alignment on smaller screens */
+
+    input {
+      padding: 20px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px; /* Font size adjusts for better visibility */
+    }
+
+    button {
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px; /* Adjust button text size */
+    }
+  }
+
+  .user {
+    margin-top: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Allow wrapping for responsiveness */
+
+    .detail {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+    }
+
+    button {
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  }
+}
+
+/* Responsive Styling */
+@media screen and (max-width: 768px) {
+  .addUser {
+    padding: 10px;
+    width: 60%; /* Take most of the screen width */
+    height: 12%; /* Allow height to adjust */
+    border-radius: 8px;
+
+    form {
+      gap: 15px;
+
+      input {
+        padding: 15px;
+        font-size: 14px; /* Smaller font size for smaller screens */
+      }
+
+      button {
+        padding: 10px;
+        font-size: 12px; /* Adjust button text size */
+      }
+    }
+
+    .user {
+      margin-top: 30px;
+      flex-direction: column; /* Stack items vertically */
+
+      .detail {
+        gap: 10px;
+
+        img {
+          width: 40px;
+          height: 40px; /* Adjust image size for smaller screens */
+        }
+      }
+
+      button {
+        padding: 10px;
+        font-size: 15px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .addUser {
+    padding: 15px;
+
+    form {
+      input {
+        padding: 12px;
+        font-size: 12px;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 12px;
+      }
+    }
+
+    .user {
+      margin-top: 20px;
+
+      .detail {
+        gap: 8px;
+
+        img {
+          width: 30px;
+          height: 30px;
+        }
+      }
+
+      button {
+        padding: 12px;
+        font-size: 12px;
+      }
+    }
+  }
+}

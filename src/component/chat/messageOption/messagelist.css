@@ -1,0 +1,64 @@
+.message-list {
+  background-color: white;
+  border-radius: 12px;
+  width: 100px;
+  height: 150px;
+
+  .option {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 400;
+    text-align: center;
+    color: #3a35a3;
+
+    span {
+      cursor: pointer;
+      margin-top: 8px;
+
+      &:hover {
+        font-size: 14px;
+      }
+    }
+  }
+
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    /* Tablet */
+    width: 80px;
+    height: 120px;
+
+    .option {
+      padding: 6px;
+      font-size: 10px;
+
+      span {
+        margin-top: 6px;
+
+        &:hover {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* Mobile */
+    width: 70px;
+    height: 100px;
+
+    .option {
+      padding: 4px;
+      font-size: 9px;
+
+      span {
+        margin-top: 4px;
+
+        &:hover {
+          font-size: 11px;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,106 @@
+.container {
+  display:flex;
+  align-items: center;
+  padding: 50px;
+
+  .file {
+    display: grid;
+    width: 300px;
+    height: 210px;
+    padding: 25px;
+    padding-left: 38px;
+    background-color: #095588a4;
+    border-radius: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 100px);
+    border: 1px solid #0a5c92a4;
+    box-shadow: 2px 5px 10px 1px #00000056;
+
+    .myfile {
+      display: flex;
+      height: 60px;
+      width: 60px;
+      background-color: hsla(202, 82%, 28%, 0.219);
+      border-radius: 50%;
+      align-items: center;
+      cursor: pointer;
+      justify-content: center;
+
+      img {
+        width: 25px;
+        height: 25px;
+        object-fit: cover;
+        cursor: pointer;
+      }
+    }
+    .myfile:hover {
+      display: flex;
+      height: 70px;
+      width: 70px;
+      background-color: hwb(157 15% 29%);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .preview-file {
+    display: flex;
+    flex-direction:column;
+    width: 300px;
+    height: 300px;
+    border: none;
+    align-items: center;
+    padding: 20px;
+    margin: 10px;
+    right:0;
+
+    .file-preview {
+      .file-item{
+       
+          img{
+            width: 300px;
+            height: 300px;
+            border: none;
+          }
+
+          video {
+            width: 280px;
+            height: 280px;
+            border: none;
+          }
+          audio {
+            width: 200px;
+            height: 50px;
+          }
+          a {
+            width: 100px;
+            height: 100px;
+          }
+          p {
+            width: 80px;
+            height: 50px;
+          }
+
+         
+      }  
+    }
+
+    .file-action {
+      display: flex;
+      justify-content: space-between;
+      margin: 0;
+
+      button {
+        cursor: pointer;
+        width: 45px;
+        height: 30;
+        background-color: green;
+        color: white;
+        outline: none;
+        border: none;
+        border-radius: 20px;
+      }
+    }
+  }
+}

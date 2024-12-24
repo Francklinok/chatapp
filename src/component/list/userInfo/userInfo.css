@@ -1,0 +1,157 @@
+.userinfo {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* display: flex;
+  flex-direction: column; */
+
+  .user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    h3 {
+      font-size: 12px;
+    }
+  }
+
+  .icons {
+    display: flex;
+    gap: 10px;
+
+    .searchbar {
+      flex: 1;
+      background-color: rgba(17, 25, 40, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 8px;
+
+      img {
+        width: 15px;
+        height: 15px;
+      }
+
+      input {
+        background-color: transparent;
+        border: none;
+        outline: none;
+        color: white;
+        flex: 1;
+        max-width: 100%;
+        padding: 5px;
+        font-size: 12px;
+      }
+    }
+
+    img {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+  }
+
+  /* Media Queries */
+  @media (max-width: 1065px) {
+    padding-top: 15px;
+    padding-left: 5px;
+    displya: flex;
+    flex-direction: column;
+  }
+
+  @media (max-width: 768px) and (max-width: 1024px) {
+    padding-top: 15px;
+    padding-left: 5px;
+    padding-right: 15px;
+    displya: flex;
+    flex-direction: column;
+
+    .user {
+      gap: 8px;
+
+      img {
+        width: 25px;
+        height: 25px;
+      }
+      h3 {
+        font-size: 8px;
+      }
+    }
+
+    .icons {
+      /* flex-wrap: wrap; */
+      gap: 8px;
+      margin-top: 10px;
+
+      .searchbar {
+        gap: 8px;
+
+        img {
+          width: 12px;
+          height: 12px;
+        }
+
+        input {
+          padding: 5px;
+          font-size: 12px;
+        }
+      }
+
+      img {
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding-top: 15px;
+    padding-right: 8px;
+    padding-left: 0px;
+    displya: flex;
+    flex-direction: column;
+
+    .user {
+      /* display: flex; */
+      img {
+        width: 15px;
+        height: 15px;
+      }
+
+      h3 {
+        font-size: 8px;
+      }
+    }
+
+    .icons {
+      gap: 5px;
+
+      .searchbar {
+        gap: 5px;
+
+        img {
+          width: 10px;
+          height: 10px;
+        }
+
+        input {
+          padding: 3px;
+          font-size: 10px;
+        }
+      }
+
+      img {
+        width: 10px;
+        height: 10px;
+      }
+    }
+  }
+}

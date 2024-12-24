@@ -1,0 +1,11 @@
+.status {
+  font-size: 8px;
+  font-weight: 500;
+
+  .online {
+    color: rgb(16, 231, 1);
+  }
+  .offline {
+    color: white;
+  }
+}

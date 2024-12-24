@@ -1,0 +1,9 @@
+import { onMessage } from "firebase/messaging";
+import { messaging } from "../firebaseConfig";
+
+export const setupNotificationListener = () => {
+  onMessage(messaging, (payload) => {
+    console.log("Notification reçue :", payload);
+    // Gérer la notification dans l'UI
+  });
+};

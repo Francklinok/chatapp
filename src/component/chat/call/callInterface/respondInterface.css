@@ -1,0 +1,168 @@
+/* Styles de base pour l'interface de réception d'appel */
+.call-interface {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+}
+
+.call-interface h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.error-message {
+  color: red;
+  font-size: 1rem;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Style des boutons */
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.accept-button, .reject-button, .end-call-button {
+  background-color: #00b300;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.accept-button:hover {
+  background-color: #009900;
+}
+
+.reject-button {
+  background-color: #ff4444;
+}
+
+.reject-button:hover {
+  background-color: #cc0000;
+}
+
+.end-call-button {
+  background-color: #ff4444;
+  margin-top: 20px;
+}
+
+.end-call-button:hover {
+  background-color: #cc0000;
+}
+
+/* Conteneur vidéo */
+.video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 20px;
+}
+
+.video-container video {
+  width: 48%;
+  height: auto;
+  margin: 1%;
+  border-radius: 8px;
+  background-color: #000;
+}
+
+/* Contenu pour les appels audio */
+.audio-call-interface {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.audio-call-interface p {
+  font-size: 1.2rem;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Styles responsives pour les écrans plus petits */
+@media (max-width: 768px) {
+  .call-interface {
+    padding: 15px;
+    max-width: 90%;
+  }
+
+  .call-interface h2 {
+    font-size: 1.2rem;
+  }
+
+  .accept-button, .reject-button, .end-call-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .video-container {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .video-container video {
+    width: 80%;
+    margin: 10px 0;
+  }
+
+  .audio-call-interface p {
+    font-size: 1rem;
+  }
+}
+
+/* Styles pour les très petits écrans (mobiles) */
+@media (max-width: 480px) {
+  .call-interface {
+    padding: 10px;
+    max-width: 100%;
+  }
+
+  .call-interface h2 {
+    font-size: 1rem;
+  }
+
+  .accept-button, .reject-button, .end-call-button {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+
+  .buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .video-container video {
+    width: 90%;
+    margin: 5px 0;
+  }
+
+  .audio-call-interface p {
+    font-size: 0.9rem;
+  }
+}
+

@@ -1,0 +1,78 @@
+.camera{
+   display:flex;
+
+
+    .video{
+        display:flex;
+        flex-direction:column;
+        width:300px;
+        height:300px;
+
+        .buton{
+            display:flex;
+            justify-content:space-between;
+
+
+             button{
+                background-color:#0e1e;
+                width:70px;
+                height:30px;
+                font-size:10px;
+                border:1px solid green;
+                border-radius:10px;
+                cursor:pointer;
+                color:white;
+                justify-content:center;
+                align-items:center;
+        }
+
+        }
+       
+    }
+
+    .canvas{
+        display:flex;
+        flex-direction:column;
+        
+        img{
+         width:300px;
+        height:300px;
+        }
+
+        .buton{
+            display:flex;
+            justify-content:space-between;
+
+            button{
+                background-color:#0e1e;
+                width:70px;
+                height:30px;
+                font-size:10px;
+                border:1px solid green;
+                border-radius:10px;
+                cursor:pointer;
+                color:white;
+                justify-content:center;
+                align-items:center;
+
+    }
+        }
+       
+
+    }
+      button{
+            display:flex;
+            background-color:#0e1e;
+            width:70px;
+            height:40px;
+            font-size:10px;
+            border:1px solid green;
+            border-radius:10px;
+            cursor:pointer;
+            color:white;
+            text-align:center;
+            
+    }
+    
+
+}
