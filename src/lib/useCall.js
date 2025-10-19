@@ -24,34 +24,18 @@ export const useCallStore = create(
   devtools(
     persist(
       (set, get) => ({
-        callState: { ...initialCallState },
-
-        // Mise à jour des états d'appel
+        ...initialCallState,
 
         updateCallStatus: (status) => {
           set((state) => ({
-            callState: { ...state.callState, ...status },
+            ...state,
+            ...status,
           }));
         },
 
-        // Gestion des flux vidéo/audio
-        // attachStream: (stream, type, ref) => {
-        //   if (!(stream instanceof MediaStream)) {
-        //     console.error("Le flux fourni n'est pas valide :", stream);
-        //     return;
-        //   }
-        //   try {
-        //     if (ref?.current) {
-        //       ref.current.srcObject = stream;
-        //     }
-        //   } catch (error) {
-        //     console.error("Erreur lors de l'attachement du flux :", error);
-        //   }
-        // },
-
-        // Réinitialisation de l'état de l'appel
         resetCallState: () => {
-          const { localStream, remoteStream } = get().callState;
+          const state = get();
+          const { localStream, remoteStream } = state;
 
           [localStream, remoteStream].forEach((stream) => {
             if (stream instanceof MediaStream) {
@@ -59,34 +43,25 @@ export const useCallStore = create(
             }
           });
 
-          set({ callState: { ...initialCallState } });
+          set({ ...initialCallState });
         },
 
         setLocalVideoRef: (ref) => {
-          set((state) => ({
-            callState:{ ...state.callState, localVideoRef:ref},
-          }))
+          set({ localVideoRef: ref });
         },
-        
+
         setRemoteVideoRef: (ref) => {
-            set((state) => ({
-              callState: { ...state.callState, remoteVideoRef:ref}
-            }))
-          },
+          set({ remoteVideoRef: ref });
+        },
 
-        // Définir les flux locaux et distants
         setLocalStream: (stream) => {
-          set((state) => ({
-            callState: { ...state.callState, localStream: stream },
-          }));
-        },
-        setRemoteStream: (stream) => {
-          set((state) => ({
-            callState: { ...state.callState, remoteStream: stream },
-          }));
+          set({ localStream: stream });
         },
 
-        // Gestion des sons (sonneries et fin d'appel)
+        setRemoteStream: (stream) => {
+          set({ remoteStream: stream });
+        },
+
         playSound: (type, loop = false) => {
           try {
             const sounds = {
@@ -98,7 +73,6 @@ export const useCallStore = create(
             const currentSound = sounds[type];
             const { currentSound: previousSound } = get().callState;
 
-            // Stop le son en cours avant de jouer un autre
             if (previousSound) {
               previousSound.pause();
               previousSound.currentTime = 0;
@@ -118,16 +92,14 @@ export const useCallStore = create(
         },
 
         stopSound: () => {
-          const { currentSound } = get().callState;
+          const { currentSound } = get();
 
           if (currentSound instanceof Audio) {
             currentSound.pause();
             currentSound.currentTime = 0;
           }
 
-          set((state) => ({
-            callState: { ...state.callState, currentSound: null },
-          }));
+          set({ currentSound: null });
         },
       }),
       { name: "call-store" }

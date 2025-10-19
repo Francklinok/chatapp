@@ -3,45 +3,38 @@ import { doc, setDoc, onSnapshot, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { useCallStore } from "./useCall";
 
-// const ICE_SERVERS = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 const ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
-    {
-      urls: "turn:your-turn-server.com:3478", // Adresse de votre serveur TURN
-      username: "your-username", // Nom d'utilisateur pour le serveur TURN
-      credential: "your-password", // Mot de passe pour le serveur TURN
-    },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
   ],
 };
 
 export function useCallData() {
+  const store = useCallStore();
   const {
     updateCallStatus,
     resetCallState,
     playSound,
     stopSound,
-    callState,
     setLocalStream,
     setRemoteStream,
-    attachStream,
     setLocalVideoRef,
     setRemoteVideoRef,
-  } = useCallStore();
+    localStream,
+    remoteStream,
+  } = store;
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-  const [peerConnection, setPeerConnection] = useState(null);
+  const peerConnectionRef = useRef(null);
 
   useEffect(() => {
-    // Nettoyage lors du démontage du composant
     return () => cleanupCall();
   }, []);
 
-  /**
-   * Prépare le flux média pour un appel.
-   * @param {boolean} isVideo - Indique si le flux doit inclure la vidéo.
-   */
+ 
   const prepareMediaStream = async (isVideo) => {
     try {
       // const stream = await navigator.mediaDevices.getUserMedia({
@@ -59,16 +52,14 @@ export function useCallData() {
   };
 
   /**
-   * Configure les flux locaux et distants pour l'appel.
-   * @param {RTCPeerConnection} pc - Instance de RTCPeerConnection.
-   * @param {boolean} isVideo - Indique si la vidéo est incluse.
+   * @param {RTCPeerConnection} pc 
+   * @param {boolean} isVideo 
    */
   const setupStreams = async (pc, isVideo) => {
     try {
       const localStream = await prepareMediaStream(isVideo);
       setLocalStream(localStream);
 
-      // Configure le flux vidéo local
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = localStream;
         await localVideoRef.current.play();
@@ -98,67 +89,96 @@ export function useCallData() {
     }
   };
 
-  /**
-   * Initialise une connexion peer-to-peer.
-   * @returns {RTCPeerConnection} - Instance de RTCPeerConnection configurée.
-   */
-  const setupPeerConnection = () => {
+  const setupPeerConnection = async (callId) => {
     const pc = new RTCPeerConnection(ICE_SERVERS);
+    peerConnectionRef.current = pc;
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log("Candidat ICE :", event.candidate);
-        // Envoyer les candidats ICE à Firebase ou un serveur de signalisation.
+    pc.onicecandidate = async (event) => {
+      if (event.candidate && callId) {
+        try {
+          const callDoc = doc(db, "calls", callId);
+          const callData = (await getDoc(callDoc)).data();
+          const candidates = callData?.iceCandidates || [];
+
+          await updateDoc(callDoc, {
+            iceCandidates: [
+              ...candidates,
+              {
+                candidate: event.candidate.candidate,
+                sdpMLineIndex: event.candidate.sdpMLineIndex,
+                sdpMid: event.candidate.sdpMid,
+              },
+            ],
+          });
+        } catch (error) {
+          console.error("Erreur lors de l'ajout du candidat ICE:", error);
+        }
       }
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log("État ICE :", pc.iceConnectionState);
-      if (pc.iceConnectionState === "failed") {
-        console.error("Échec de la connexion ICE");
-        cleanupCall();
+      console.log("État de connexion ICE:", pc.iceConnectionState);
+      if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
+        console.warn("Connexion ICE interrompue");
+      }
+      if (pc.iceConnectionState === "connected") {
+        console.log("Connexion ICE établie avec succès");
+        stopSound();
       }
     };
 
-    setPeerConnection(pc);
     return pc;
   };
 
-  const monitorCallState = (callId) => {
+  const monitorCallState = (callId, isAnswerer = false) => {
     const callDoc = doc(db, "calls", callId);
 
-    onSnapshot(callDoc, (snapshot) => {
+    const unsubscribe = onSnapshot(callDoc, async (snapshot) => {
       const data = snapshot.data();
       if (!data) return;
 
-      if (data.status === "ended") {
-        if (!callState.isIncall) return;
-        cleanupCall();
-        playSound("apfinis", false);
-      } else if (data.status === "calling" || data.status === "ringing") {
-        updateCallStatus({
-          // isCalling: true,
-          isCalling: data.status === "calling",
-          isRinging: data.status === "ringing",
-        });
-      } else if (data.status === "in_call") {
-        updateCallStatus({ isInCall: true });
+      if (data.iceCandidates && peerConnectionRef.current) {
+        for (const candidate of data.iceCandidates) {
+          try {
+            if (candidate.candidate) {
+              await peerConnectionRef.current.addIceCandidate(
+                new RTCIceCandidate(candidate)
+              );
+            }
+          } catch (error) {
+            console.error("Erreur lors de l'ajout du candidat ICE:", error);
+          }
+        }
       }
 
-      if (data.rejected) {
+      if (!isAnswerer && data.answer && peerConnectionRef.current) {
+        try {
+          await peerConnectionRef.current.setRemoteDescription(
+            new RTCSessionDescription(data.answer)
+          );
+        } catch (error) {
+          console.error("Erreur lors du setRemoteDescription:", error);
+        }
+      }
+
+      if (data.status === "ended" || data.rejected) {
         playSound("apfinis", false);
         cleanupCall();
-        updateCallStatus({ isInCall: false, isCalling: false });
+        updateCallStatus({ isInCall: false, isCalling: false, isRinging: false });
+      } else if (data.status === "in_call" && data.accepted) {
+        stopSound();
+        updateCallStatus({ isInCall: true, isCalling: false, isRinging: false });
       }
     });
+
+    return unsubscribe;
   };
 
   /**
-   * Démarre un appel.
-   * @param {string} callId - Identifiant unique de l'appel.
-   * @param {boolean} isVideo - Indique si l'appel inclut la vidéo.
-   * @param {string} callerId - Identifiant de l'appelant.
-   * @param {string} receiverId - Identifiant du destinataire.
+   * @param {string} callId 
+   * @param {boolean} isVideo 
+   * @param {string} callerId 
+   * @param {string} receiverId
    */
 
   const startCall = async (callId, isVideo = false, callerId, receiverId) => {
@@ -167,13 +187,13 @@ export function useCallData() {
         throw new Error("callId et receiverId sont requis.");
       }
 
-      // const pc = new RTCPeerConnection(ICE_SERVERS);
-      // setPeerConnection(pc);
-
-      const pc = setupPeerConnection();
+      const pc = await setupPeerConnection(callId);
       await setupStreams(pc, isVideo);
 
-      const offer = await pc.createOffer();
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: isVideo,
+      });
       await pc.setLocalDescription(offer);
 
       await setDoc(doc(db, "calls", callId), {
@@ -182,15 +202,20 @@ export function useCallData() {
         offer: { type: offer.type, sdp: offer.sdp },
         type: isVideo ? "video" : "audio",
         status: "calling",
+        accepted: false,
+        rejected: false,
+        iceCandidates: [],
         createdAt: new Date(),
       });
 
       playSound("apemis", true);
-      updateCallStatus({ isCalling: true });
-      monitorCallState(callId);
+      updateCallStatus({ isCalling: true, callId, isVideoCall: isVideo });
+
+      monitorCallState(callId, false);
     } catch (error) {
       console.error("Erreur lors de l'initiation de l'appel :", error);
       resetCallState();
+      throw error;
     }
   };
   const initializeCall = async ({ callId, isVideo, callerId, receiverId }) => {
@@ -202,9 +227,8 @@ export function useCallData() {
         receiverId,
       });
 
-      // const localStream = await prepareMediaStream(isVideo);
 
-      startCall(callId, isVideo, callerId, receiverId); // Lancer l'appel après initialisation
+      startCall(callId, isVideo, callerId, receiverId); 
 
       updateCallStatus({
         callId,
@@ -226,39 +250,42 @@ export function useCallData() {
       const callDoc = doc(db, "calls", callId);
       const callData = (await getDoc(callDoc)).data();
 
-      // const pc = new RTCPeerConnection(ICE_SERVERS);
-      // setPeerConnection(pc);
-      const pc = setupPeerConnection();
+      if (!callData || !callData.offer) {
+        throw new Error("Données d'appel invalides");
+      }
 
-      setupStreams(pc, callData.type === "video");
+      const pc = await setupPeerConnection(callId);
+      await setupStreams(pc, callData.type === "video");
 
       await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      await setDoc(
-        callDoc,
-        {
-          answer: { type: answer.type, sdp: answer.sdp },
-          status: "in_call",
-        },
-        { merge: true }
-      );
+      await updateDoc(callDoc, {
+        answer: { type: answer.type, sdp: answer.sdp },
+        status: "in_call",
+        accepted: true,
+      });
 
-      playSound("ringing", true);
-      updateCallStatus({ isInCall: true });
-      await updateDoc(doc(db, "calls", callId), { accepted: true });
-      // updateCallStatus(callId, "accepted");
-      // setCallStatus("En cours d'appel");
+      stopSound();
+      updateCallStatus({
+        isInCall: true,
+        isRinging: false,
+        callId,
+        isVideoCall: callData.type === "video"
+      });
+
+      monitorCallState(callId, true);
     } catch (error) {
       console.error("Erreur lors de la réponse :", error);
       resetCallState();
+      throw error;
     }
   };
 
   /**
-   * Termine un appel en cours.
-   * @param {string} callId - Identifiant unique de l'appel.
+   * @param {string} callId 
    */
   const endCall = async (callId) => {
     try {
@@ -274,24 +301,30 @@ export function useCallData() {
     }
   };
 
-  /**
-   * Nettoie les ressources utilisées par l'appel.
-   */
+ 
   const cleanupCall = () => {
-    if (peerConnection) {
-      peerConnection.close();
-      setPeerConnection(null);
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
     }
 
-    const { localStream, remoteStream } = callState;
-    [localStream, remoteStream].forEach((stream) => {
+    const streams = [localStream, remoteStream];
+    streams.forEach((stream) => {
       if (stream instanceof MediaStream) {
-        stream.getTracks().forEach((track) => track.stop());
+        stream.getTracks().forEach((track) => {
+          track.stop();
+          console.log(`Track ${track.kind} arrêté`);
+        });
       }
     });
 
-    // if (localStream) localStream.getTracks().forEach((track) => track.stop());
-    // if (remoteStream) remoteStream.getTracks().forEach((track) => track.stop());
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
     stopSound();
     resetCallState();
   };
@@ -305,103 +338,3 @@ export function useCallData() {
 }
 
 
-// const prepareMediaStream = async (isVideo) => {
-//   try {
-//     const constraints = {
-//       audio: true,
-//       video: isVideo
-//         ? {
-//             width: { ideal: 1280 },
-//             height: { ideal: 720 },
-//             facingMode: "user",
-//           }
-//         : false,
-//     };
-
-//     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-//     return stream;
-//   } catch (error) {
-//     console.error("Media access error:", error);
-//     throw new Error(`Cannot access media: ${error.message}`);
-//   }
-// };
-// const localStream = await prepareMediaStream(isVideo);
-// console.log(
-//   "Local stream tracks:",
-//   localStream.getTracks().map((t) => ({
-//     kind: t.kind,
-//     enabled: t.enabled,
-//     muted: t.muted,
-//   }))
-// );
-
-// pc.oniceconnectionstatechange = () => {
-//   console.log("ICE Connection State:", pc.iceConnectionState);
-//   console.log("ICE Gathering State:", pc.iceGatheringState);
-// };
-
-// const setupStreams = async (pc, isVideo) => {
-//   try {
-//     // Get local media stream
-//     const localStream = await prepareMediaStream(isVideo);
-//     setLocalStream(localStream);
-
-//     // Attach local stream to video element
-//     if (localVideoRef.current) {
-//       localVideoRef.current.srcObject = localStream;
-//       // Ensure video element properties are set
-//       localVideoRef.current.muted = true;
-//       localVideoRef.current.autoplay = true;
-//       localVideoRef.current.playsInline = true;
-
-//       try {
-//         await localVideoRef.current.play();
-//       } catch (playError) {
-//         console.error("Error auto-playing local video:", playError);
-//       }
-//     }
-
-//     // Add tracks to peer connection
-//     localStream.getTracks().forEach((track) => {
-//       pc.addTrack(track, localStream);
-//     });
-
-//     // Handle remote stream
-//     pc.ontrack = (event) => {
-//       console.log("Received remote track:", event.track.kind);
-
-//       if (!remoteVideoRef.current) {
-//         console.error("Remote video element not found");
-//         return;
-//       }
-
-//       // Create new MediaStream if it doesn't exist
-//       if (!remoteVideoRef.current.srcObject) {
-//         remoteVideoRef.current.srcObject = new MediaStream();
-//       }
-
-//       // Add the track to the existing stream
-//       const stream = remoteVideoRef.current.srcObject;
-//       if (!stream.getTracks().find((t) => t.id === event.track.id)) {
-//         stream.addTrack(event.track);
-//       }
-
-//       // Ensure video element properties are set
-//       remoteVideoRef.current.autoplay = true;
-//       remoteVideoRef.current.playsInline = true;
-
-//       try {
-//         remoteVideoRef.current.play();
-//       } catch (playError) {
-//         console.error("Error auto-playing remote video:", playError);
-//       }
-
-//       setRemoteStream(stream);
-//     };
-
-//     return localStream;
-//   } catch (error) {
-//     console.error("Error setting up streams:", error);
-//     throw error;
-//   }
-// };

@@ -86,7 +86,7 @@
   }
 
   .audio-preview {
-    width: 80%; /* Ajuste la largeur pour les tablettes */
+    width: 80%;
     padding: 0.8rem;
   }
 
@@ -107,96 +107,18 @@
   }
 
   .audio-preview {
-    width: 90%; /* Ajuste la largeur pour les petits écrans */
+    width: 90%; 
     padding: 0.5rem;
-    font-size: 0.9rem; /* Réduit la taille du texte */
+    font-size: 0.9rem; 
   }
 
   .audio-actions {
     flex-direction: column;
-    gap: 0.5rem; /* Moins d'espace entre les boutons */
+    gap: 0.5rem; 
   }
 
   .audio-actions button {
     padding: 0.3rem 0.6rem;
-    font-size: 0.8rem; /* Réduit la taille des boutons */
+    font-size: 0.8rem; 
   }
 }
-/* .recorder-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.microphone-button {
-  font-size: 2rem;
-  cursor: pointer;
-  background-color: #4caf50;
-  border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s ease;
-}
-
-.microphone-button.recording {
-  background-color: #e91e63;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 5px rgba(233, 30, 99, 0.5);
-  }
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(233, 30, 99, 0.7);
-  }
-}
-
-.audio-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 60%;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeIn 0.5s forwards;
-}
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.audio-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.audio-actions button {
-  background-color: #007bff;
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.audio-actions button:hover {
-  background-color: #0056b3;
-} */

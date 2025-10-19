@@ -21,7 +21,7 @@ const Upload = async (file, fileType) => {
     !allowedFileTypes[fileType].includes(file.type)
   ) {
     console.warn(`Unsupported file type for ${file.type}. Storing in 'other'.`);
-    fileType = "other"; // Répertoire par défaut pour les types non reconnus
+    fileType = "other";
   }
 
   const filename = `${Date.now()}-${file.name}`;
@@ -45,7 +45,7 @@ const Upload = async (file, fileType) => {
           .then((downloadURL) => {
             resolve({
               url: downloadURL,
-              type: fileType, // Inclut le type de fichier utilisé pour le stockage
+              type: fileType, 
             });
           })
           .catch((error) => {

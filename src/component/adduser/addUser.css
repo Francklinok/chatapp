@@ -1,147 +1,190 @@
 .addUser {
-  padding: 30px;
-  width: max-content;
-  height: max-content;
-  background-color: rgba(17, 25, 40, 0.5);
-  border-radius: 10px;
-  position: absolute;
+  position: fixed;
   top: 0;
-  bottom: 0;
   left: 0;
   right: 0;
-  margin: auto;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
 
-  form {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap; /* Allow wrapping for better alignment on smaller screens */
+.addUser-content {
+  background: #233138;
+  border-radius: 12px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid #1f2c34;
+  animation: slideIn 0.3s ease-out;
+}
 
-    input {
-      padding: 20px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      font-size: 16px; /* Font size adjusts for better visibility */
-    }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-    button {
-      padding: 15px;
-      border-radius: 10px;
-      background-color: #1a73e8;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px; /* Adjust button text size */
-    }
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
   }
-
-  .user {
-    margin-top: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap; /* Allow wrapping for responsiveness */
-
-    .detail {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-
-      img {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-    }
-
-    button {
-      padding: 20px;
-      border-radius: 10px;
-      background-color: #1a73e8;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
+}
+
+.addUser-content form {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.addUser-content form input {
+  flex: 1;
+  padding: 15px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  background: #2a3942;
+  color: #e9edef;
+  min-width: 200px;
+}
+
+.addUser-content form input::placeholder {
+  color: #8696a0;
+}
+
+.addUser-content form button {
+  padding: 15px 20px;
+  border-radius: 8px;
+  background-color: #00a884;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background-color 0.2s ease;
+}
+
+.addUser-content form button:hover {
+  background-color: #008069;
+}
+
+.addUser-content .user {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  background: #2a3942;
+  border-radius: 8px;
+  border: 1px solid #1f2c34;
+}
+
+.addUser-content .user .detail {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.addUser-content .user .detail img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.addUser-content .user .detail span {
+  color: #e9edef;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.addUser-content .user button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  background-color: #00a884;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.addUser-content .user button:hover {
+  background-color: #008069;
 }
 
 /* Responsive Styling */
 @media screen and (max-width: 768px) {
-  .addUser {
-    padding: 10px;
-    width: 60%; /* Take most of the screen width */
-    height: 12%; /* Allow height to adjust */
-    border-radius: 8px;
+  .addUser-content {
+    padding: 20px;
+    width: 90%;
+    max-width: 350px;
+  }
 
-    form {
-      gap: 15px;
+  .addUser-content form {
+    gap: 15px;
+    flex-direction: column;
+  }
 
-      input {
-        padding: 15px;
-        font-size: 14px; /* Smaller font size for smaller screens */
-      }
+  .addUser-content form input {
+    min-width: auto;
+    padding: 12px;
+    font-size: 14px;
+  }
 
-      button {
-        padding: 10px;
-        font-size: 12px; /* Adjust button text size */
-      }
-    }
+  .addUser-content form button {
+    padding: 12px;
+    font-size: 14px;
+  }
 
-    .user {
-      margin-top: 30px;
-      flex-direction: column; /* Stack items vertically */
+  .addUser-content .user {
+    margin-top: 20px;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
 
-      .detail {
-        gap: 10px;
+  .addUser-content .user .detail img {
+    width: 40px;
+    height: 40px;
+  }
 
-        img {
-          width: 40px;
-          height: 40px; /* Adjust image size for smaller screens */
-        }
-      }
-
-      button {
-        padding: 10px;
-        font-size: 15px;
-      }
-    }
+  .addUser-content .user button {
+    width: 100%;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .addUser {
+  .addUser-content {
     padding: 15px;
+    width: 95%;
+    max-width: 300px;
+  }
 
-    form {
-      input {
-        padding: 12px;
-        font-size: 12px;
-      }
+  .addUser-content form input {
+    padding: 10px;
+    font-size: 13px;
+  }
 
-      button {
-        padding: 12px;
-        font-size: 12px;
-      }
-    }
+  .addUser-content form button {
+    padding: 10px;
+    font-size: 13px;
+  }
 
-    .user {
-      margin-top: 20px;
+  .addUser-content .user .detail img {
+    width: 35px;
+    height: 35px;
+  }
 
-      .detail {
-        gap: 8px;
-
-        img {
-          width: 30px;
-          height: 30px;
-        }
-      }
-
-      button {
-        padding: 12px;
-        font-size: 12px;
-      }
-    }
+  .addUser-content .user .detail span {
+    font-size: 14px;
   }
 }

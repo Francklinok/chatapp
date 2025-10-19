@@ -1,5 +1,5 @@
 import { doc, runTransaction } from "firebase/firestore";
-import { db } from "../../../lib/firebase"; // Adjust the path if necessary
+import { db } from "../../../lib/firebase"; 
 
 /**
  * Adds a reaction to a specific message in a chat.

@@ -7,7 +7,7 @@ import "./respondInterface.css";
 
 const ReceiverInterface = ({ callId, callType, onEndCall }) => {
   const {
-    updateCallStatus, // Défaut pour éviter les erreurs
+    updateCallStatus,
     playSound,
     stopSound,
     resetCallState,
@@ -125,11 +125,6 @@ const ReceiverInterface = ({ callId, callType, onEndCall }) => {
             playsInline
           ></video>
         </div>
-      )}
-      {isCallOngoing && (
-        <button className="end-call-button" onClick={handleEndCall}>
-          Terminer l'appel
-        </button>
       )}
       {isCallOngoing && (
         <button className="end-call-button" onClick={handleEndCall}>

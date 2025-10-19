@@ -1,7 +1,22 @@
 .list {
-  flex: 1;
+  flex: 0 0 350px;
   display: flex;
   flex-direction: column;
-  height:100%;
-  min-width:50px;
+  height: 100%;
+  background: #111b21;
+  border-right: 1px solid #1f2c34;
+  position: relative;
+}
+
+@media (max-width: 1000px) {
+  .list {
+    flex: 0 0 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .list {
+    flex: 1;
+    max-width: 100%;
+  }
 }

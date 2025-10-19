@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Picker from "emoji-picker-react"; // Import the emoji picker component
-import addReaction from "./AddReaction"; // Ensure the path is correct for your AddReaction module
-import "./reaction.css"; // Ensure you create the necessary styles in this CSS file
-import EmojiPicker from "emoji-picker-react"; // Import the emoji picker library
+import Picker from "emoji-picker-react"; 
+import addReaction from "./AddReaction"; 
+import "./reaction.css";
+import EmojiPicker from "emoji-picker-react"; 
 
 const Reaction = ({ message, chatId }) => {
   // State to track if the default emojis are shown

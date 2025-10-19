@@ -1,57 +1,118 @@
-// Import necessary modules and functions
-import { create } from "zustand"; // Zustand for state management
-import { useUserStore } from "./userStore"; // Access to user state
-import { updateDoc, doc, arrayUnion, getDoc } from "firebase/firestore"; // Firebase Firestore utilities
+/**
+ * Chat Store - Zustand State Management
+ *
+ * This store manages the global state for chat functionality including:
+ * - Active chat selection
+ * - User blocking status
+ * - Chat participant information
+ *
+ * @module chatStore
+ */
 
-// Zustand store for managing chat-related state
+import { create } from "zustand";
+import { useUserStore } from "./userStore";
+import { updateDoc, doc, arrayUnion, getDoc } from "firebase/firestore";
+
+/**
+ * Chat Store Hook
+ *
+ * Provides global state management for chat-related data and actions.
+ *
+ * @typedef {Object} ChatStore
+ * @property {string|null} chatId - The ID of the currently active chat
+ * @property {Object|null} user - The user object of the chat participant
+ * @property {boolean} isCurrentUserBlocked - Whether the current user is blocked by the other participant
+ * @property {boolean} isReceiverBlocked - Whether the current user has blocked the other participant
+ * @property {Function} changeChat - Function to switch to a different chat
+ * @property {Function} changeBlock - Function to toggle block status
+ * @property {Function} resetChat - Function to reset chat state on logout
+ */
 export const useChatStore = create((set, get) => ({
-  chatId: null, // Current chat ID
-  user: null, // Current chat participant
-  isCurrentUserBlocked: false, // Whether the current user is blocked by the chat participant
-  isReceiverBlocked: false, // Whether the chat participant is blocked by the current user
+  chatId: null,
+  user: null,
+  isCurrentUserBlocked: false,
+  isReceiverBlocked: false,
 
-  // Function to change the active chat and handle block status
+  /**
+   * Change Active Chat
+   *
+   * Updates the active chat and determines the blocking status between users.
+   * Handles three scenarios:
+   * 1. Current user is blocked by the other participant
+   * 2. Current user has blocked the other participant
+   * 3. No blocking between users
+   *
+   * @async
+   * @param {string} chatId - The ID of the chat to activate
+   * @param {Object} user - The user object of the chat participant
+   * @returns {Promise<void>}
+   */
   changeChat: async (chatId, user) => {
-    const currentUser = useUserStore.getState().currentUser; // Get the current user's data from userStore
+    const currentUser = useUserStore.getState().currentUser;
 
+    // Validate user object
     if (!user) {
-      console.error("User is undefined in changeChat"); // Log an error if no user is provided
+      console.error("User is undefined in changeChat");
       return;
     }
 
-    // Check if the current user is blocked by the chat participant
+    // Scenario 1: Current user is blocked by the other participant
     if (user.blocked.includes(currentUser.id)) {
       set({
-        chatId, // Set the chat ID
-        user: null, // No active chat participant
-        isCurrentUserBlocked: true, // Mark current user as blocked
-        isReceiverBlocked: false, // Current user has not blocked the participant
+        chatId,
+        user: null,
+        isCurrentUserBlocked: true,
+        isReceiverBlocked: false,
       });
     }
-    // Check if the chat participant is blocked by the current user
+    // Scenario 2: Current user has blocked the other participant
     else if (currentUser.blocked.includes(user.id)) {
       set({
-        chatId, // Set the chat ID
-        user, // Set the active chat participant
-        isCurrentUserBlocked: false, // Current user is not blocked
-        isReceiverBlocked: true, // Mark participant as blocked
+        chatId,
+        user,
+        isCurrentUserBlocked: false,
+        isReceiverBlocked: true,
       });
     }
-    // If neither party is blocked, set the chat normally
+    // Scenario 3: No blocking between users (normal chat)
     else {
       set({
-        chatId, // Set the chat ID
-        user, // Set the active chat participant
-        isCurrentUserBlocked: false, // No blocking by the participant
-        isReceiverBlocked: false, // No blocking by the current user
+        chatId,
+        user,
+        isCurrentUserBlocked: false,
+        isReceiverBlocked: false,
       });
     }
   },
 
-  // Function to toggle the block status of the chat participant
+  /**
+   * Toggle Block Status
+   *
+   * Toggles the blocking status of the current chat participant.
+   * This allows users to block/unblock other users.
+   *
+   * @returns {void}
+   */
   changeBlock: () => {
     set((state) => ({
-      isReceiverBlocked: !state.isReceiverBlocked, // Toggle the block state
+      isReceiverBlocked: !state.isReceiverBlocked,
     }));
+  },
+
+  /**
+   * Reset Chat State
+   *
+   * Clears all chat-related state. Typically called during logout
+   * to ensure no residual chat data remains.
+   *
+   * @returns {void}
+   */
+  resetChat: () => {
+    set({
+      chatId: null,
+      user: null,
+      isCurrentUserBlocked: false,
+      isReceiverBlocked: false,
+    });
   },
 }));

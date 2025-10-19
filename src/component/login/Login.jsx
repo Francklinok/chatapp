@@ -1,3 +1,34 @@
+/**
+ * Login Component - User authentication interface
+ *
+ * This component provides a dual-mode authentication interface for both
+ * user login and registration. It handles user authentication through Firebase
+ * and manages user profile creation.
+ *
+ * Features:
+ * - Toggle between login and registration modes
+ * - Email and password validation
+ * - Password visibility toggle
+ * - Avatar upload for new users
+ * - Password reset functionality
+ * - Form validation with error messages
+ * - User profile creation in Firestore
+ * - Online status tracking initialization
+ *
+ * Validation:
+ * - Email format validation using regex
+ * - Password matching for registration
+ * - Username length validation (3-20 characters)
+ * - Required avatar for registration
+ * - Duplicate account detection
+ *
+ * @component
+ * @returns {JSX.Element} The login/registration form interface
+ *
+ * @example
+ * <Login />
+ */
+
 import "./login.css";
 import { useState } from "react";
 import {
@@ -18,14 +49,28 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Regular expression for email validation
+  /**
+   * Regular expression for email validation
+   * Validates standard email format: user@domain.extension
+   * @type {RegExp}
+   */
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Helper function to validate email format
+  /**
+   * Validates email format using regex
+   *
+   * @param {string} email - The email address to validate
+   * @returns {boolean} True if email format is valid, false otherwise
+   */
   const validateEmail = (email) =>
     EMAIL_REGEX.test(String(email).toLowerCase());
 
-  // Handle avatar selection and preview
+  /**
+   * Handles avatar file selection and preview
+   * Creates a temporary URL for preview display
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - File input change event
+   */
   const handleAvatar = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -33,7 +78,30 @@ const Login = () => {
     }
   };
 
-  // Handle user registration
+  /**
+   * Handles user registration
+   *
+   * Process:
+   * 1. Extracts and validates form data
+   * 2. Validates email format
+   * 3. Checks password matching
+   * 4. Validates avatar upload
+   * 5. Validates username length
+   * 6. Checks for existing account
+   * 7. Creates Firebase auth account
+   * 8. Uploads avatar to storage
+   * 9. Creates user profile in Firestore
+   * 10. Initializes user chats collection
+   *
+   * Validation rules:
+   * - Valid email format required
+   * - Passwords must match
+   * - Avatar image required
+   * - Username: 3-20 characters
+   *
+   * @async
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
+   */
   const handleRegister = async (e) => {
     e.preventDefault();
 
@@ -97,7 +165,23 @@ const Login = () => {
     }
   };
 
-  // Handle user login
+  /**
+   * Handles user login
+   *
+   * Process:
+   * 1. Extracts email and password from form
+   * 2. Authenticates with Firebase Auth
+   * 3. Verifies user profile exists in Firestore
+   * 4. Sets user online status
+   * 5. Displays success message
+   *
+   * If user profile doesn't exist (orphaned auth account):
+   * - Signs out the user
+   * - Shows error message to register first
+   *
+   * @async
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
+   */
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -111,6 +195,18 @@ const Login = () => {
         email,
         password
       );
+      
+      // Check if user document exists in Firestore
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      
+      if (!userDoc.exists()) {
+        // If user document doesn't exist, sign out and show error
+        await auth.signOut();
+        toast.error("User profile not found. Please register first.");
+        setLoading(false);
+        return;
+      }
+      
       setUserOnlineStatus(userCredential.user.uid);
       toast.success("Login successful!");
     } catch (err) {
@@ -121,7 +217,17 @@ const Login = () => {
     }
   };
 
-  // Handle password reset
+  /**
+   * Handles password reset request
+   *
+   * Process:
+   * 1. Prompts user for email address
+   * 2. Validates email format
+   * 3. Sends password reset email via Firebase
+   * 4. Displays success/error message
+   *
+   * @async
+   */
   const handlePasswordReset = async () => {
     const email = prompt("Please enter your email to reset your password:");
 

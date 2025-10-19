@@ -1,63 +1,54 @@
 .message-list {
-  background-color: white;
-  border-radius: 12px;
-  width: 100px;
-  height: 150px;
+  background-color: #202c33;
+  border-radius: 8px;
+  border: 1px solid rgba(134, 150, 160, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 
   .option {
     display: flex;
     flex-direction: column;
-    padding: 8px;
-    font-size: 12px;
-    font-weight: 400;
-    text-align: center;
-    color: #3a35a3;
+    padding: 4px;
 
     span {
       cursor: pointer;
-      margin-top: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 400;
+      color: #e9edef;
+      transition: background-color 0.2s ease;
+      text-align: left;
+      white-space: nowrap;
 
       &:hover {
-        font-size: 14px;
+        background-color: #2a3942;
+      }
+
+      &:active {
+        background-color: #1f2c34;
       }
     }
   }
 
   /* Responsive styling */
   @media (max-width: 768px) {
-    /* Tablet */
-    width: 80px;
-    height: 120px;
-
     .option {
-      padding: 6px;
-      font-size: 10px;
+      padding: 3px;
 
       span {
-        margin-top: 6px;
-
-        &:hover {
-          font-size: 12px;
-        }
+        padding: 7px 10px;
+        font-size: 12px;
       }
     }
   }
 
   @media (max-width: 480px) {
-    /* Mobile */
-    width: 70px;
-    height: 100px;
-
     .option {
-      padding: 4px;
-      font-size: 9px;
+      padding: 2px;
 
       span {
-        margin-top: 4px;
-
-        &:hover {
-          font-size: 11px;
-        }
+        padding: 6px 8px;
+        font-size: 12px;
       }
     }
   }

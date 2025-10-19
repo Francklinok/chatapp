@@ -34,10 +34,9 @@ const CallerInterface = ({ callId, callType, onEndCall }) => {
         return;
       }
 
-      // Mise à jour du statut d'appel en fonction des données Firestore
       if (callData.accepted) {
         setCallStatus("Appel accepté");
-        stopSound(); // Arrêter la sonnerie une fois l'appel accepté
+        stopSound();
         setIsInCall(true);
       } else if (callData.rejected) {
         setCallStatus("Appel rejeté");
@@ -48,28 +47,25 @@ const CallerInterface = ({ callId, callType, onEndCall }) => {
         setCallStatus("En attente de réponse...");
       }
 
-      // Mise à jour de l'état de l'appel dans le store
       updateCallStatus(callData.status || "En attente de réponse...");
     });
 
-    // Démarrage de la sonnerie lorsque l'appel est en attente
     playSound("apemis", true);
 
-    // Clean-up
     return () => {
       unsubscribe();
-      stopSound(); // Arrêter la sonnerie à la fin du composant
+      stopSound(); 
     };
   }, [callId, playSound, stopSound]);
 
   const handleEndCall = () => {
     stopSound();
-    endCall(callId); // Terminer l'appel côté serveur
+    endCall(callId);
     setCallStatus("Appel terminé");
     updateCallStatus(callId, "ended");
-    resetCallState(); // Réinitialiser l'état de l'appel dans le store
-    setIsInCall(false); // Sortir de l'appel
-    if (onEndCall) onEndCall(); // Callback pour informer du retour dans l'état principal
+    resetCallState();
+    setIsInCall(false); 
+    if (onEndCall) onEndCall(); 
   };
 
   return (

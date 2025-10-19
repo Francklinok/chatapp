@@ -1,3 +1,30 @@
+/**
+ * AddUser Component - Search and add new chat contacts
+ *
+ * This component provides a search interface to find and add new users to chat with.
+ * It allows searching for users by username and creating new chat conversations.
+ *
+ * Features:
+ * - Search users by exact username match
+ * - Display found user's profile (avatar and username)
+ * - Create new chat conversation with selected user
+ * - Initialize chat documents in Firestore
+ * - Update both users' chat lists
+ *
+ * Process:
+ * 1. User enters a username to search
+ * 2. Query Firestore users collection
+ * 3. Display matching user if found
+ * 4. On "Add User", create a new chat document
+ * 5. Update both users' chat lists with the new chat reference
+ *
+ * @component
+ * @returns {JSX.Element} The add user search interface
+ *
+ * @example
+ * <AddUser />
+ */
+
 import "./addUser.css";
 import { useState } from "react";
 import {
@@ -15,13 +42,22 @@ import { db } from "../../lib/firebase";
 import { useUserStore } from "../../lib/userStore";
 
 const AddUser = () => {
-  // State to store the user data when a user is found
   const [user, setUser] = useState(null);
-
-  // Getting the current logged-in user from the user store
   const { currentUser } = useUserStore();
 
-  // Function to handle the search of a user by username
+  /**
+   * Handles user search by username
+   *
+   * Process:
+   * 1. Extracts username from form input
+   * 2. Queries Firestore users collection for exact match
+   * 3. Sets user state if found, clears if not found
+   *
+   * Note: Uses exact match (==) for username, case-sensitive
+   *
+   * @async
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
+   */
   const handleSearch = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -49,7 +85,27 @@ const AddUser = () => {
     }
   };
 
-  // Function to handle adding the found user to a chat
+  /**
+   * Handles adding a found user to create a new chat
+   *
+   * Process:
+   * 1. Creates a new chat document with empty messages array
+   * 2. Updates the found user's chat list (userchats collection)
+   * 3. Updates the current user's chat list (userchats collection)
+   * 4. Both users get the same chatId reference for the conversation
+   *
+   * Chat structure:
+   * - chats/{chatId}: Contains messages array
+   * - userchats/{userId}: Contains array of chat references
+   *
+   * Each chat reference includes:
+   * - chatId: Reference to the chat document
+   * - lastMessage: Preview of last message
+   * - receiverId: The other user in the conversation
+   * - updatedAt: Timestamp for sorting
+   *
+   * @async
+   */
   const handleAdd = async () => {
     const chatRef = collection(db, "chats");
     const userChatsRef = collection(db, "userchats");
@@ -98,8 +154,8 @@ const AddUser = () => {
   };
 
   return (
-    <>
-      <div className="addUser">
+    <div className="addUser">
+      <div className="addUser-content">
         {/* Form to search for a user by username */}
         <form onSubmit={handleSearch}>
           <input type="text" placeholder="username" name="username" required />
@@ -118,7 +174,7 @@ const AddUser = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,8 +1,33 @@
 /**
- * Main Chat Component
- * This component manages and renders the chat interface, handling messages, files, emoji reactions,
- * user typing status, and call functionalities (audio/video). It integrates Firebase for real-time
- * data updates and storage, and uses external libraries for enhanced functionality.
+ * Chat Component - Real-time messaging interface with multimedia support
+ *
+ * This component provides a comprehensive chat interface with support for:
+ * - Real-time text messaging with Markdown rendering
+ * - File sharing (images, videos, audio, documents)
+ * - Emoji reactions and emoji picker
+ * - Audio/video calling functionality
+ * - Voice message recording
+ * - Typing indicators
+ * - Message editing and deletion
+ * - User blocking/unblocking
+ * - Online status tracking
+ *
+ * Features:
+ * - Real-time synchronization with Firebase Firestore
+ * - File upload to Firebase Storage
+ * - WebRTC-based audio/video calls
+ * - Message grouping by date
+ * - Markdown support with GitHub Flavored Markdown
+ * - Emoji reactions on messages
+ * - Voice message recording with microphone
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onShowDetails - Callback to show user details panel
+ * @returns {JSX.Element} The chat interface component
+ *
+ * @example
+ * <Chat onShowDetails={() => setShowDetails(true)} />
  */
 
 import EmojiPicker from "emoji-picker-react";
@@ -19,7 +44,7 @@ import {
   where,
   collection,
 } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"; // Pour le stockage des fichiers
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../lib/firebase";
 import { useChatStore } from "../../lib/chatStore";
 import { useUserStore } from "../../lib/userStore";
@@ -36,12 +61,7 @@ import Recorder from "./file/recorder/Recorder";
 import { useCallStore } from "../../lib/useCall";
 import { useCallData } from "../../lib/handleCall";
 
-/**
- * Main Chat component.
- * Handles rendering, sending, and managing messages, files, and call functionalities.
- * @component
- */
-const Chat = () => {
+const Chat = ({ onShowDetails }) => {
   const [chat, setChat] = useState(null);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -59,28 +79,43 @@ const Chat = () => {
   // const { handleStartTyping, handleStopTyping } = useTypingTracker(chatId, user, setTypingUsers, setLoading, chat);
 
   const [callId, setCallId] = useState(null);
-  const [callType, setCallType] = useState(null); // "audio" ou "video"
-  const [isInitiatingCall, setIsInitiatingCall] = useState(false); // true si on initie l'appel
-  const [isReceivingCall, setIsReceivingCall] = useState(false); // true si on reçoit l'appel
+  const [callType, setCallType] = useState(null);
+  const [isInitiatingCall, setIsInitiatingCall] = useState(false); 
+  const [isReceivingCall, setIsReceivingCall] = useState(false); 
   const { currentUser } = useUserStore();
-  const [isRecording, setIsRecording] = useState(false); // Etat pour gérer l'enregistrement
+  const [isRecording, setIsRecording] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
   const endRef = useRef(null);
   const timeoutRef = useRef(null);
 
   console.log("donner de l appel", initializeCall);
 
-  // Clean up resources when a call ends.
+  /**
+   * Effect: Clean up call resources when a call ends
+   * Monitors the call state and triggers cleanup when status becomes "ended"
+   */
   useEffect(() => {
-    if (callState.status === "ended") {
+    if (callState && callState.status === "ended") {
       cleanupCall();
     }
-  }, [callState.status]);
+  }, [callState?.status]);
 
   /**
-   * Effect to listen to incoming calls.
-   * Updates state when a call is initiated.
-   * @function
+   * Handles the display of user details panel
+   * Invokes the onShowDetails callback if provided
+   */
+  const handleShowDetails = () => {
+    if (onShowDetails) {
+      onShowDetails();
+    } else {
+      console.log("Show details clicked - no handler provided");
+    }
+  };
+
+  /**
+   * Effect: Listen for incoming calls
+   * Sets up a real-time listener for incoming calls from other users
+   * Updates local state when a call is initiated
    */
   useEffect(() => {
     if (!currentUser || !currentUser.id) return;
@@ -105,7 +140,10 @@ const Chat = () => {
     return () => unsubscribeIncoming();
   }, [currentUser, updateCallStatus]);
 
-  // Listen for changes in  the call and  if it when necessary
+  /**
+   * Effect: Monitor active call status changes
+   * Listens to the current call document and ends the call if status is "ended" or "rejected"
+   */
   useEffect(() => {
     if (!callId) return;
 
@@ -121,28 +159,47 @@ const Chat = () => {
     return () => unsubscribeOutgoing();
   }, [callId]);
 
-  //Listen for changes in the chat document
+  /**
+   * Effect: Listen for real-time chat updates
+   * Subscribes to chat document changes and updates the local chat state
+   * Provides console logging for debugging message synchronization
+   */
   useEffect(() => {
     if (!chatId) return;
 
+    console.log(`🎧 Setting up listener for chatId: ${chatId}`);
+
     const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
       const chatData = res.data();
+      console.log(`📨 Received chat update for chatId: ${chatId}`, {
+        messagesCount: chatData?.messages?.length || 0,
+        lastMessage: chatData?.messages?.[chatData.messages.length - 1]?.text?.substring(0, 30)
+      });
+
       if (chatData && chatData.messages) {
         setChat(chatData);
       }
     });
 
     return () => {
+      console.log(`🔌 Unsubscribing from chatId: ${chatId}`);
       unSub();
     };
   }, [chatId]);
 
-  // Set loading to false when chat data is available
+  /**
+   * Effect: Update loading state when chat data is available
+   * Sets loading to false once chat data has been fetched
+   */
   useEffect(() => {
-    setLoading(false); // set loading to false once chat data is available
-  }, [chat]); // This effect will run every time 'chat' data is updated
+    setLoading(false);
+  }, [chat]);
 
-  // Listen for tping users and update the tping status
+  /**
+   * Effect: Listen for typing status updates
+   * Monitors typing indicators from other users in the chat
+   * Filters out the current user from the typing users list
+   */
   useEffect(() => {
     if (!chatId || !user?.id) return;
 
@@ -151,21 +208,23 @@ const Chat = () => {
     const unsubscribe = onSnapshot(typingDocRef, (snapshot) => {
       const data = snapshot.data();
       if (data && data.typing) {
-        // Filtrer les utilisateurs sauf l'utilisateur actuel
         setTypingUsers(
           Object.keys(data.typing).filter(
             (uid) => uid !== user.id && data.typing[uid]?.isTyping
           )
         );
       } else {
-        setTypingUsers([]); // Aucun utilisateur en train d'écrire
+        setTypingUsers([]); 
       }
     });
 
     return () => unsubscribe();
   }, [chatId, user?.id, setTypingUsers]);
 
-  //clear the timeout
+  /**
+   * Effect: Clean up typing timeout on component unmount
+   * Ensures proper cleanup of the typing indicator timeout
+   */
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -175,7 +234,11 @@ const Chat = () => {
   }, []);
 
   /**
-   * Tracks typing status in Firestore.
+   * Initiates typing status indicator
+   * Updates Firestore to show the current user is typing
+   * Sets a 5-second timeout to automatically stop the typing indicator
+   *
+   * @async
    * @function
    */
   const handleStartTyping = async () => {
@@ -199,7 +262,12 @@ const Chat = () => {
   };
 
   /**
-   * Function to stop typing status in Firestore.
+   * Stops the typing status indicator
+   * Updates Firestore to show the current user has stopped typing
+   * Clears any existing typing timeout
+   *
+   * @async
+   * @function
    */
   const handleStopTyping = async () => {
     if (!chatId || !user?.username) return;
@@ -220,26 +288,43 @@ const Chat = () => {
     }
   };
 
-  // Function to handle changes in the text input field
+  /**
+   * Handles text input changes
+   * Updates the message text state as the user types
+   *
+   * @param {React.ChangeEvent<HTMLTextAreaElement>} e - The change event
+   */
   const handleTextChange = (e) => {
-    setText(e.target.value); // Update the state 'text' with the new value entered by the user
-    // handleTyping();
-    // handleTypingOptimistic();
+    setText(e.target.value);
   };
 
-  // Function to handle emoji selection
+  /**
+   * Handles emoji selection from the emoji picker
+   * Appends the selected emoji to the current message text
+   *
+   * @param {Object} e - The emoji picker event object
+   * @param {string} e.emoji - The selected emoji character
+   */
   const handleEmoji = (e) => {
-    setText((prev) => prev + e.emoji); // Append the selected emoji to the current text
-    setOpen(false); // Close the emoji picker after selecting an emoji
-    console.log(e); // Log the emoji event object for debugging or further actions
+    setText((prev) => prev + e.emoji);
+    setOpen(false);
+    console.log(e);
   };
 
-  // Function to toggle the visibility of an image
+  /**
+   * Toggles the file attachment panel visibility
+   * Shows or hides the file upload interface
+   */
   const handleImage = () => {
-    setVisibleF((prev) => !prev); // Toggle the visibility state of an image, changing it from true to false or vice versa
+    setVisibleF((prev) => !prev);
   };
 
-  // Group messages by date
+  /**
+   * Groups chat messages by date for organized display
+   * Formats messages into date-based sections using moment.js
+   *
+   * @type {Object.<string, Array>}
+   */
   const groupedMessages = chat?.messages?.reduce((acc, message) => {
     let date;
 
@@ -261,7 +346,13 @@ const Chat = () => {
     return acc;
   }, {});
 
-  // Edit message
+  /**
+   * Handles message editing
+   * Updates the message text in the local messages state
+   *
+   * @param {string} messageId - The ID of the message to edit
+   * @param {string} newText - The new text content for the message
+   */
   const handleEditMessage = (messageId, newText) => {
     console.log(`Message édité: ID=${messageId}, Nouveau Texte=${newText}`);
     setMessages((prevMessages) =>
@@ -271,17 +362,30 @@ const Chat = () => {
     );
   };
 
-  // Delete message
+  /**
+   * Handles message deletion
+   * Placeholder function for deleting messages (to be implemented)
+   *
+   * @async
+   * @param {string} messageId - The ID of the message to delete
+   */
   const handleDeleteMessage = async (messageId) => {
     console.log(`Message supprimé: ID=${messageId}`);
   };
 
   /**
-   * Uploads a file to Firebase storage.
-   * @function
-   * @param {File} file - The file to upload.
-   * @param {string} fileType - The type of the file.
-   * @returns {Promise<Object>} - The uploaded file metadata including its URL.
+   * Uploads a file to Firebase Storage
+   * Organizes files into folders based on their type (photos, videos, audios, documents, etc.)
+   * Uses UUID to generate unique filenames
+   *
+   * @async
+   * @param {File} file - The file object to upload
+   * @param {string} fileType - The type of file (image, video, audio, document, contact)
+   * @returns {Promise<Object>} The uploaded file metadata
+   * @returns {string} return.name - Original filename
+   * @returns {string} return.type - File type
+   * @returns {string} return.url - Firebase Storage download URL
+   * @throws {Error} If upload fails
    */
   const sendFile = async (file, fileType) => {
     try {
@@ -322,14 +426,30 @@ const Chat = () => {
   };
 
   /**
-   * Sends a message or files.
-   * @function
-   * @param {Object} param0 - Contains the text and files to send.
-   * @param {string} param0.text - The message text.
-   * @param {Array} param0.files - Array of files to send.
+   * Sends a message with optional file attachments
+   * Handles both text messages and file uploads, creates a message object,
+   * stores it in Firestore, and updates user chat metadata
+   *
+   * Features:
+   * - Validates message content (text or files required)
+   * - Uploads files to Firebase Storage
+   * - Creates unique message IDs using UUID
+   * - Updates both chat document and user chats
+   * - Stops typing indicator after sending
+   *
+   * @async
+   * @param {Object} params - Message parameters
+   * @param {string} [params.text=""] - The message text content
+   * @param {Array<{file: File, type: string}>} [params.files=[]] - Array of file objects with their types
+   * @throws {Error} If message sending fails
    */
   const handleSend = async ({ text = "", files = [] }) => {
-    if (!text.trim() && files.length === 0) return; // Don't send anything if message is empty and no files are selected.
+    if (!text.trim() && files.length === 0) return;
+
+    if (!chatId || !user?.id) {
+      console.error("❌ Cannot send message: chatId or user.id is missing");
+      return;
+    }
 
     try {
       let uploadedFiles = [];
@@ -353,6 +473,13 @@ const Chat = () => {
         reaction: {},
       };
 
+      console.log("📤 Sending message:", {
+        chatId,
+        senderId: currentUser.id,
+        receiverId: user.id,
+        messagePreview: text.substring(0, 50)
+      });
+
       // Reference to the chat document in Firestore
       const chatRef = doc(db, "chats", chatId);
 
@@ -361,26 +488,60 @@ const Chat = () => {
         messages: arrayUnion(newMessage),
       });
 
+      console.log("✅ Message added to chat document");
+
       // Update user chat information with the new message
-      updateUserChats(newMessage);
+      await updateUserChats(newMessage);
+
+      console.log("✅ Message sent successfully");
 
       // Reset the input text field after sending
       setText("");
+
+      // Stop typing indicator
+      await handleStopTyping();
     } catch (error) {
-      console.error("Error sending message:", error); // Log any error encountered
+      console.error("❌ Error sending message:", error); // Log any error encountered
+      alert("Erreur lors de l'envoi du message. Veuillez réessayer.");
     }
   };
 
   /**
-   * Updates user chat information with the new message.
-   * @function
-   * @param {Object} newMessage - The new message object to update in user chats.
+   * Updates user chat metadata after sending a message
+   * Updates the chat list for both sender and receiver with the latest message info
+   *
+   * Process:
+   * 1. Retrieves each user's chat list from Firestore
+   * 2. Finds the specific chat by chatId
+   * 3. Updates lastMessage, isSeen status, and timestamp
+   * 4. Saves updated chat list back to Firestore
+   *
+   * Features:
+   * - Automatically marks sender's message as seen
+   * - Marks receiver's message as unseen
+   * - Displays file type icons for media messages
+   * - Provides detailed console logging for debugging
+   *
+   * @async
+   * @param {Object} newMessage - The message object to update in user chats
+   * @param {string} newMessage.text - Message text content
+   * @param {Array} newMessage.files - Attached files
+   * @param {string} newMessage.senderId - ID of the message sender
    */
   const updateUserChats = async (newMessage) => {
     const userIDs = [currentUser.id, user.id]; // The two users involved in the chat
 
+    console.log("🔍 Starting updateUserChats with:", {
+      currentUserId: currentUser.id,
+      receiverId: user.id,
+      chatId: chatId,
+      messagePreview: newMessage.text?.substring(0, 30)
+    });
+
     for (const id of userIDs) {
       try {
+        console.log(`\n📝 Processing user: ${id === currentUser.id ? 'SENDER' : 'RECEIVER'} (${id})`);
+
         // Reference to the user's chat data in Firestore
         const userChatsRef = doc(db, "userchats", id);
 
@@ -390,26 +551,44 @@ const Chat = () => {
         if (userChatsSnapshot.exists()) {
           const userChatsData = userChatsSnapshot.data();
 
+          console.log(`   📦 User ${id} has ${userChatsData.chats?.length || 0} chats`);
+
+          if (!userChatsData.chats || !Array.isArray(userChatsData.chats)) {
+            console.error(`   ❌ Invalid chats structure for user: ${id}`);
+            continue;
+          }
+
           // Find the chat that corresponds to the current chat
           const chatIndex = userChatsData.chats.findIndex(
             (c) => c.chatId === chatId
           );
 
+          console.log(`   🔎 Searching for chatId: ${chatId}`);
+          console.log(`   📍 Chat found at index: ${chatIndex}`);
+
           if (chatIndex !== -1) {
+            const existingChat = userChatsData.chats[chatIndex];
+            console.log(`   📄 Existing chat:`, {
+              chatId: existingChat.chatId,
+              receiverId: existingChat.receiverId,
+              lastMessage: existingChat.lastMessage,
+              isSeen: existingChat.isSeen
+            });
+
             // Determine the content of the 'lastMessage' field
             let lastMessageContent = newMessage.text || "";
             if (newMessage.files && newMessage.files.length > 0) {
               const fileTypes = newMessage.files.map((file) => file.type);
               // Set different message content based on file type
               if (fileTypes.includes("image"))
-                lastMessageContent = "Photo sent";
+                lastMessageContent = "📷 Photo";
               else if (fileTypes.includes("video"))
-                lastMessageContent = "Video sent";
+                lastMessageContent = "🎥 Video";
               else if (fileTypes.includes("audio"))
-                lastMessageContent = "Audio sent";
+                lastMessageContent = "🎵 Audio";
               else if (fileTypes.includes("document"))
-                lastMessageContent = "Document sent";
-              else lastMessageContent = "File sent";
+                lastMessageContent = "📄 Document";
+              else lastMessageContent = "📎 File";
             }
 
             // Update the last message and other chat details
@@ -420,28 +599,39 @@ const Chat = () => {
               updatedAt: Date.now(), // Set the current timestamp for last update
             };
 
+            console.log(`   📝 Updated chat to:`, {
+              lastMessage: lastMessageContent,
+              isSeen: id === currentUser.id,
+              updatedAt: userChatsData.chats[chatIndex].updatedAt
+            });
+
             // Save the updated chat data in Firestore
             await updateDoc(userChatsRef, {
               chats: userChatsData.chats,
             });
+
+            console.log(`   ✅ Chat updated successfully in Firestore for user: ${id}`);
           } else {
-            console.error(`Chat not found for user: ${id}`); // Log error if chat is not found
+            console.error(`   ❌ Chat NOT FOUND in userchats for user: ${id}`);
+            console.error(`   📋 Available chatIds:`, userChatsData.chats.map(c => c.chatId));
+            console.error(`   🔍 Looking for chatId: ${chatId}`);
           }
         } else {
-          console.error(
-            `No 'userchats' document found for user: ${id}` // Log error if no user chats document exists
-          );
+          console.error(`   ❌ No 'userchats' document found for user: ${id}`);
         }
       } catch (error) {
-        console.error(`Error updating chats for user: ${id}`, error);
+        console.error(`   ❌ Error updating chats for user: ${id}`, error);
       }
     }
+
+    console.log("✅ updateUserChats completed\n");
   };
 
   /**
-   * Starts an audio or video call with the user.
-   * @function
-   * @param {boolean} isVideo - Whether it's a video call or not (defaults to false for audio).
+   * Initiates an audio or video call
+   * Creates a unique call ID and initializes the WebRTC call session
+   *
+   * @param {boolean} [isVideo=false] - True for video call, false for audio-only
    */
   const handleStartCall = (isVideo = false) => {
     const callId = `call_${Date.now()}`; // Generate a unique call ID based on the current timestamp
@@ -457,8 +647,10 @@ const Chat = () => {
   };
 
   /**
-   * Ends the ongoing call.
-   * @function
+   * Ends the current call session
+   * Updates call status in Firestore and cleans up local call state
+   *
+   * @async
    */
   const handleEndCall = async () => {
     if (!callId) return; // Do nothing if there is no active call
@@ -482,65 +674,93 @@ const Chat = () => {
   };
 
   /**
-   * Starts recording the call.
-   * @function
+   * Starts voice message recording
+   * Sets the recording state to active
    */
   const handleStartRecording = () => {
-    setIsRecording(true); // Set recording state to true
+    setIsRecording(true);
   };
 
   /**
-   * Stops recording the call.
-   * @function
+   * Stops voice message recording
+   * Sets the recording state to inactive
    */
   const handleStopRecording = () => {
-    setIsRecording(false); // Set recording state to false
+    setIsRecording(false);
   };
 
   /**
-   * Handles the click event on a message to toggle visibility of the emoji picker.
-   * @function
-   * @param {string} messageId - The ID of the message being clicked.
+   * Handles message click to show/hide options
+   * Toggles the visibility of message options (reactions, edit, delete)
+   * Only one message can have visible options at a time
+   *
+   * @param {string} messageId - The unique identifier of the clicked message
    */
   const handleClick = (messageId) => {
-    setActiveMessageId((prevId) => (prevId === messageId ? null : messageId)); // Toggle active message ID
+    setActiveMessageId((prevId) => (prevId === messageId ? null : messageId));
     setEmojiPickerVisible((prev) => ({
       ...prev,
-      [messageId]: !prev[messageId], // Toggle emoji picker visibility for the clicked message
+      [messageId]: !prev[messageId],
     }));
   };
 
   return (
     <>
       <div className="chat">
-        <div className="top">
-          <div className="user">
-            <img src={user?.avatar?.url || "./avatar.png"} alt="" />
-            <div className="text">
-              <span>{user?.username}</span>
-              <span>
+        <div className="chat-header">
+          <div className="user-info" onClick={handleShowDetails}>
+            <img src={user?.avatar?.url || "./avatar.png"} alt="User Avatar" className="user-avatar" />
+            <div className="user-details">
+              <h3 className="username">{user?.username}</h3>
+              <div className="status-container">
                 <OnlineStatus userId={user?.id} />
-              </span>
-              <span className="typing">
-                {typingUsers.length > 0 &&
-                  `${typingUsers.join(", ")} ${
-                    typingUsers.length > 1 ? "sont" : "est"
-                  } en train d'écrire...`}
-              </span>
+                {typingUsers.length > 0 && (
+                  <span className="typing-indicator">
+                    typing...
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="icons">
-            <img
-              src="./phone.png"
+          
+          <div className="header-actions">
+            <button 
+              className="action-btn"
+              title="Search in conversation"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M15.5,14L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5M9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14Z"/>
+              </svg>
+            </button>
+
+            <button 
+              className="action-btn"
               onClick={() => handleStartCall(false)}
-              alt="call icone"
-            />
-            <img
-              src="./video.png"
+              title="Voice call"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"/>
+              </svg>
+            </button>
+
+            <button 
+              className="action-btn"
               onClick={() => handleStartCall(true)}
-              alt=""
-            />
-            <img src="./info.png" alt="" />
+              title="Video call"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/>
+              </svg>
+            </button>
+
+            <button 
+              className="action-btn menu-btn"
+              title="Menu"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -765,8 +985,11 @@ const Chat = () => {
             className="sendButton"
             onClick={() => handleSend({ text })}
             disabled={isCurrentUserBlocked || isReceiverBlocked}
+            title="Send message"
           >
-            Send
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/>
+            </svg>
           </button>
         </div>
       </div>

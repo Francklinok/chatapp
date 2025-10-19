@@ -1,3 +1,33 @@
+/**
+ * Details Component - Chat user details and settings panel
+ *
+ * This component displays detailed information about the chat recipient
+ * and provides access to chat-specific settings and actions.
+ *
+ * Features:
+ * - Display recipient's profile (avatar, username, online status)
+ * - Chat settings section (collapsible)
+ * - Privacy & help section (collapsible)
+ * - Shared media section (collapsible)
+ * - Block/unblock user functionality
+ * - Quick logout option
+ * - Close button to dismiss panel
+ *
+ * Block functionality:
+ * - Prevents blocked users from sending messages
+ * - Shows "You are blocked" if current user is blocked
+ * - Shows "Unblock user" or "Block user" button accordingly
+ * - Updates Firestore blocked list in real-time
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onClose - Callback to close the details panel
+ * @returns {JSX.Element} The user details panel
+ *
+ * @example
+ * <Details onClose={() => setShowDetails(false)} />
+ */
+
 import "./details.css";
 import {
   doc,
@@ -12,16 +42,22 @@ import { useUserStore } from "../../lib/userStore";
 import OnlineStatus from "../online/Status";
 import { toast } from "react-toastify";
 
-// Component: Details
-// Handles user profile details, blocking/unblocking users, and logging out
-const Details = () => {
-  // Access chat-related state and functions
+const Details = ({ onClose }) => {
   const {user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } =
     useChatStore();
-  // Access current user data
   const { currentUser } = useUserStore();
 
-  // Function to block or unblock a user
+  /**
+   * Handles blocking/unblocking a user
+   *
+   * Process:
+   * 1. Checks if user exists
+   * 2. Updates current user's blocked array in Firestore
+   * 3. Adds user ID if blocking, removes if unblocking
+   * 4. Updates local block state via changeBlock()
+   *
+   * @async
+   */
   const handleBlock = async () => {
     if (!user) return; // Return early if no user is provided
 
@@ -39,30 +75,18 @@ const Details = () => {
     }
   };
 
-  // Function to log out the user
-  // const handleLogout = async () => {
-  //   try {
-  //     const userId = auth.currentUser.uid; // Get the current user's ID
-
-  //     // Update the user's status to offline
-  //     const userStatusRef = doc(db, "status", userId);
-  //     await updateDoc(userStatusRef, {
-  //       state: "offline",
-  //       last_changed: serverTimestamp(),
-  //     });
-
-  //     // Sign out the user
-  //     await auth.signOut();
-  //     toast.success("Logout successful"); // Display a success notification
-  //   } catch (err) {
-  //     console.error(err); // Log any errors
-  //     toast.error("Error logging out"); // Display an error notification
-  //   }
-  // };
 
   return (
     <>
         <div className="details">
+          {onClose && (
+            <button className="close-button" onClick={onClose} title="Close">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+              </svg>
+            </button>
+          )}
+
           <div className="user">
             <img src={user?.avatar?.url || "./avatar.png"} alt="" />
             <h2>{user?.username}</h2>
@@ -70,23 +94,30 @@ const Details = () => {
               <OnlineStatus userId={user?.id} />
             </p>
           </div>
+
           <div className="info">
             <div className="options">
               <div className="title">
                 <span>Chat settings</span>
-                <img src="./arrowUp.png" alt="" />
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                </svg>
               </div>
             </div>
             <div className="options">
               <div className="title">
                 <span>Privacy & help</span>
-                <img src="./arrowUp.png" alt="" />
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                </svg>
               </div>
             </div>
             <div className="options">
               <div className="title">
-                <span>Share photos</span>
-                <img src="./arrowDown.png" alt="" />
+                <span>Shared media</span>
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="currentColor" d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                </svg>
               </div>
             </div>
           </div>
@@ -94,19 +125,18 @@ const Details = () => {
           <div className="button">
             <button onClick={handleBlock}>
               {isCurrentUserBlocked
-                ? "you are blocked"
+                ? "You are blocked"
                 : isReceiverBlocked
-                ? "user block"
-                : "blocked user"}
+                ? "Unblock user"
+                : "Block user"}
             </button>
 
             <button className="logout" onClick={() => auth.signOut()}>
-              {" "}
-              log out{" "}
+              Logout
             </button>
           </div>
         </div>
-      
+
     </>
   );
 };

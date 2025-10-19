@@ -1,22 +1,7 @@
-// store/useCallStore.js
-// import create from "zustand";
 
-// const useCallStore = create((set) => ({
-//   incomingCall: null,
-//   callStatus: "idle", // 'idle', 'incoming', 'ongoing', 'ended'
-//   setIncomingCall: (call) =>
-//     set({ incomingCall: call, callStatus: "incoming" }),
-//   setCallStatus: (status) => set({ callStatus: status }),
-//   endCall: () => set({ callStatus: "ended", incomingCall: null }),
-// }));
-
-// export default useCallStore;
-
-// store/useCallStore.js
 import create from "zustand";
 import produce from "immer";
 
-// Définir les types d'états pour plus de clarté
 const CallStatus = {
   IDLE: "idle",
   INCOMING: "incoming",
@@ -28,7 +13,6 @@ const useCallStore = create((set) => ({
   incomingCall: null,
   callStatus: CallStatus.IDLE,
 
-  // Définir un appel entrant et changer le statut à 'incoming'
   setIncomingCall: (call) =>
     set(
       produce((state) => {
@@ -37,7 +21,6 @@ const useCallStore = create((set) => ({
       })
     ),
 
-  // Mettre à jour le statut de l'appel
   setCallStatus: (status) =>
     set(
       produce((state) => {
@@ -45,7 +28,6 @@ const useCallStore = create((set) => ({
       })
     ),
 
-  // Terminer l'appel et réinitialiser l'état
   endCall: () =>
     set(
       produce((state) => {
@@ -54,7 +36,6 @@ const useCallStore = create((set) => ({
       })
     ),
 
-  // Réinitialiser l'état à la valeur par défaut
   resetCallState: () =>
     set(
       produce((state) => {
